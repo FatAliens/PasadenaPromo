@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>13db4baf-e095-429b-baeb-847d44623fdd</UserSecretsId>
+    <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
   </PropertyGroup>
 
   <ItemGroup>
