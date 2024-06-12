@@ -28,10 +28,12 @@ namespace PasadenaPromo.RepositoryItems
                 Id: this.Id,
                 FirstName: this.FirstName,
                 LastName: this.LastName,
-                Avatar: this.AvatarUrl
+                Avatar: this.AvatarUrl,
+                Email: this.Email,
+                Phone: this.Phone
                 );
         }
     }
 
-    public record UserState(int Id, string FirstName, string LastName, string Avatar);
+    public record UserState(int Id, string FirstName, string LastName, string Avatar, string? Email, string? Phone);
 }

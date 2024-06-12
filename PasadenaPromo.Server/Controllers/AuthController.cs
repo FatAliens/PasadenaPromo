@@ -18,30 +18,43 @@ namespace PasadenaPromo.Controllers
         private readonly ApplicationContext _db = db;
         private readonly HashService _hasher = hasher;
 
-        public record LoginModel([Required, EmailAddress] string Email, [Required, StringLength(100, MinimumLength = 6)] string Password);
+        public record LoginModel([EmailAddress] string? Email, [Phone] string? Phone, [Required, StringLength(100, MinimumLength = 6)] string Password);
         public record RegistrationModel(
             [Required, StringLength(100, MinimumLength = 2)] string FirstName,
             [Required, StringLength(100, MinimumLength = 5)] string LastName,
-            [Required, Range(1, double.PositiveInfinity)] int ClubId,
             [Required, MinLength(6), MaxLength(100)] string Password,
             [Required] string AvatarURL,
-            [Required] ProofCodeModel EmailAndProof
+            EmailAndProof? EmailAndProof,
+            PhoneAndProof? PhoneAndProof
         );
 
-        public record ProofCodeModel([Required, EmailAddress] string EmailAddress, [Required, Range(1000, 9999)] int ProofCode);
+        public record ChangePasswordModel(
+            EmailAndProof EmailAndProof,
+            PhoneAndProof PhoneAndProof,
+            [Required, MinLength(6), MaxLength(100)] string Password
+            );
 
-        public record ChangePasswordModel([Required] ProofCodeModel EmailAndProof, [Required, MinLength(6), MaxLength(100)] string Password);
+        public record EmailAndProof([Required, EmailAddress] string Email, [Required, Range(1, 9999)] int ProofCode);
+        public record PhoneAndProof([Required, Phone] string Phone, [Required, Range(1, 9999)] int ProofCode);
 
         [HttpGet("users")]
         public ActionResult<List<UserState>> GetAllUsers()
         {
-            return _db.Users.Select(u=>u.ToUserState()).ToList();
+            return _db.Users.Select(u => u.ToUserState()).ToList();
         }
 
         [HttpPost("login")]
         public ActionResult Login([FromBody] LoginModel model)
         {
-            var user = _db.Users.Include(u => u.Role).FirstOrDefault(u => u.Email == model.Email);
+            if (model.Phone == null && model.Email == null)
+                return BadRequest();
+
+            UserDbo? user;
+
+            if (model.Email != null)
+                user = _db.Users.Include(u => u.Role).FirstOrDefault(u => u.Email == model.Email);
+            else
+                user = _db.Users.Include(u => u.Role).FirstOrDefault(u => u.Phone == model.Phone);
 
             if (user == null) return BadRequest();
 
@@ -65,17 +78,30 @@ namespace PasadenaPromo.Controllers
         [HttpPost("registration")]
         public ActionResult Registration([FromBody] RegistrationModel model)
         {
-            //Validate Club
-            //if (_db.Clubs.Any(c => c.Id == model.ClubId) == false)
-            //    return Conflict("clubId");
+            if(model.EmailAndProof == null && model.PhoneAndProof == null)
+                return BadRequest("Phone or email required!");
 
-            //Uniq Email
-            if (_db.Users.Any(u => u.Email == model.EmailAndProof.EmailAddress))
-                return Conflict("email");
+            if (model.EmailAndProof != null)
+            {
+                //Uniq Email
+                if (_db.Users.Any(u => u.Email == model.EmailAndProof.Email))
+                    return Conflict("email");
 
-            //Proof Code
-            //if (_emailProof.ValidateProofCode(model.EmailAndProof.EmailAddress, model.EmailAndProof.ProofCode))
-            //    return Unauthorized();
+                //Proof Code
+                //if (_emailProof.ValidateProofCode(model.EmailAndProof.EmailAddress, model.EmailAndProof.ProofCode))
+                //    return Unauthorized();
+            }
+
+            if (model.PhoneAndProof != null)
+            {
+                //Uniq Email
+                if (_db.Users.Any(u => u.Phone == model.PhoneAndProof.Phone))
+                    return Conflict("phone");
+
+                //Proof Code
+                //if (_emailProof.ValidateProofCode(model.EmailAndProof.EmailAddress, model.EmailAndProof.ProofCode))
+                //    return Unauthorized();
+            }
 
             //Uniq Name
             if (_db.Users.Any(u => u.FirstName == model.FirstName && u.LastName == model.LastName))
@@ -90,12 +116,12 @@ namespace PasadenaPromo.Controllers
                 FirstName = model.FirstName,
                 LastName = model.LastName,
                 AvatarUrl = model.AvatarURL,
-                Email = model.EmailAndProof.EmailAddress,
-                //ClubRefId = model.ClubId,
+                Email = model.EmailAndProof?.Email,
+                Phone = model.PhoneAndProof?.Phone,
                 PasswordHash = passwordHash,
                 //RefreshToken = GenerateRefreshToken(),
                 RoleId = 1,
-                Role = _db.Roles.First(r => r.Id == 1)
+                Role = _db.Roles.First(r=>r.Id == 1)
             };
 
             //add to db
@@ -120,7 +146,7 @@ namespace PasadenaPromo.Controllers
 
             var passwordHash = _hasher.HashPassword(model.Password).ToString();
 
-            var user = _db.Users.FirstOrDefault(u => u.Email == model.EmailAndProof.EmailAddress);
+            var user = _db.Users.FirstOrDefault(u => u.Email == model.EmailAndProof.Email);
 
             if (user == null)
                 return BadRequest();

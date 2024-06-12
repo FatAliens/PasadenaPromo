@@ -62,11 +62,11 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-            var dbUsername = builder.Configuration["db-user"];
-            var dbPassword = builder.Configuration["db-password"];
-            connectionString += $" User Id={dbUsername}; Pwd={dbPassword};";
-            builder.Services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(connectionString));
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new Exception("Add 'DefaultConnection' to appsettings");
+var dbUsername = builder.Configuration["db-user"] ?? throw new Exception("Add 'db-user' to secrets");
+var dbPassword = builder.Configuration["db-password"] ?? throw new Exception("Add 'db-password' to secrets");
+connectionString += $" User Id={dbUsername}; Pwd={dbPassword};";
+builder.Services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(connectionString));
 
 var app = builder.Build();
 
