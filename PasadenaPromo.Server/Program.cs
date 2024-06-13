@@ -1,7 +1,6 @@
 using System.Text;
+using Markdig;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PasadenaPromo;
@@ -9,10 +8,25 @@ using PasadenaPromo.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var markdown = File.ReadAllText("./README.md");
+var html = Markdown.ToHtml(markdown);
+var linkStyles = """<link href="style.css" rel="stylesheet" />""";
+html += linkStyles;
+var index = "./wwwroot/index.html";
+var file = new FileStream(index, FileMode.Create);
+file.Close();
+File.WriteAllText(index, html, Encoding.Unicode);
+
 if (builder.Environment.IsProduction())
 {
     builder.Configuration.AddJsonFile("secrets.json");
 }
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new Exception("Add 'DefaultConnection' to appsettings");
+var dbUsername = builder.Configuration["db-user"] ?? throw new Exception("Add 'db-user' to secrets");
+var dbPassword = builder.Configuration["db-password"] ?? throw new Exception("Add 'db-password' to secrets");
+connectionString += $" User Id={dbUsername}; Pwd={dbPassword};";
+builder.Services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(connectionString));
 
 var jwtSettings = new JwtSettings();
 builder.Configuration.Bind("JwtSettings", jwtSettings);
@@ -21,6 +35,10 @@ jwtSettings.Key = builder.Configuration["jwt-key"] ?? throw new Exception("Add '
 builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddTransient<JwtTokenCreator>();
 builder.Services.AddTransient<HashService>();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddControllers();
 
 builder.Services.AddAuthentication(i =>
 {
@@ -60,17 +78,9 @@ builder.Services.AddAuthentication(i =>
     options.Cookie.IsEssential = true;
 });
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddControllers();
-
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new Exception("Add 'DefaultConnection' to appsettings");
-var dbUsername = builder.Configuration["db-user"] ?? throw new Exception("Add 'db-user' to secrets");
-var dbPassword = builder.Configuration["db-password"] ?? throw new Exception("Add 'db-password' to secrets");
-connectionString += $" User Id={dbUsername}; Pwd={dbPassword};";
-builder.Services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(connectionString));
-
 var app = builder.Build();
+
+app.UseFileServer();
 
 if (app.Environment.IsDevelopment())
 {
@@ -80,5 +90,5 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.MapControllers();
-app.Map("/", [HttpGet] () => "Pasadena Web-Api!");
+
 app.Run();
