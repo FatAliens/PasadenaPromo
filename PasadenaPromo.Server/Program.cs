@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.RegularExpressions;
 using Markdig;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,8 @@ var markdown = File.ReadAllText("./README.md");
 var html = Markdown.ToHtml(markdown);
 var linkStyles = """<link href="style.css" rel="stylesheet" />""";
 html += linkStyles;
+var hostName = builder.Configuration["URLS"].Split(';')[0];
+html = Regex.Replace(html, "{{.+}}", hostName);
 var index = "./wwwroot/index.html";
 var file = new FileStream(index, FileMode.Create);
 file.Close();
@@ -90,5 +93,4 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.MapControllers();
-
 app.Run();
