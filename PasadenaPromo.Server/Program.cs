@@ -13,7 +13,7 @@ var markdown = File.ReadAllText("./README.md");
 var html = Markdown.ToHtml(markdown);
 var linkStyles = """<link href="style.css" rel="stylesheet" />""";
 html += linkStyles;
-var hostName = builder.Configuration["URLS"].Split(';')[0];
+var hostName = builder.Configuration["HostName"];
 html = Regex.Replace(html, "{{.+}}", hostName);
 var index = "./wwwroot/index.html";
 var file = new FileStream(index, FileMode.Create);
