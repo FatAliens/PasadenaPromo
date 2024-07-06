@@ -15,7 +15,6 @@ namespace PasadenaPromo.RepositoryItems
         public string FirstName { get; set; } = null!;
         public string LastName { get; set; } = null!;
         public string? Email { get; set; }
-        public string? Phone { get; set; }
         public string PasswordHash { get; set; } = null!;
         public string AvatarUrl { get; set; } = null!;
         public int RoleId { get; set; }
@@ -29,11 +28,10 @@ namespace PasadenaPromo.RepositoryItems
                 FirstName: this.FirstName,
                 LastName: this.LastName,
                 Avatar: this.AvatarUrl,
-                Email: this.Email,
-                Phone: this.Phone
+                Email: this.Email
                 );
         }
     }
 
-    public record UserState(int Id, string FirstName, string LastName, string Avatar, string? Email, string? Phone);
+    public record UserState(int Id, string FirstName, string LastName, string Avatar, string? Email);
 }
