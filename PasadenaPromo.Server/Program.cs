@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PasadenaPromo;
 using PasadenaPromo.Auth;
+using PasadenaPromo.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +39,8 @@ jwtSettings.Key = builder.Configuration["jwt-key"] ?? throw new Exception("Add '
 builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddTransient<JwtTokenCreator>();
 builder.Services.AddTransient<HashService>();
+builder.Services.AddMemoryCache();
+builder.Services.AddTransient<EmailProofService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

@@ -3,6 +3,9 @@ using PasadenaPromo.RepositoryItems;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
+using MimeKit;
+using MailKit.Net.Smtp;
+using PasadenaPromo.Services;
 
 namespace PasadenaPromo.Controllers
 {
@@ -11,12 +14,14 @@ namespace PasadenaPromo.Controllers
     public class AuthController(
         JwtTokenCreator jwtCreator,
         ApplicationContext db,
-        HashService hasher
+        HashService hasher,
+        EmailProofService emailProof
         ) : ControllerBase
     {
         private readonly JwtTokenCreator _jwtCreator = jwtCreator;
         private readonly ApplicationContext _db = db;
         private readonly HashService _hasher = hasher;
+        private readonly EmailProofService _emailProof = emailProof;
 
         public record LoginModel([EmailAddress] string? Email, [Required, StringLength(100, MinimumLength = 6)] string Password);
         public record RegistrationModel(
@@ -74,8 +79,8 @@ namespace PasadenaPromo.Controllers
                 return Conflict("email");
 
             //Proof Code
-            //if (_emailProof.ValidateProofCode(model.EmailAndProof.EmailAddress, model.EmailAndProof.ProofCode))
-            //    return Unauthorized();
+            if (_emailProof.ValidateProofCode(model.EmailAndProof.Email, model.EmailAndProof.ProofCode))
+                return Unauthorized();
 
             //Uniq Name
             if (_db.Users.Any(u => u.FirstName == model.FirstName && u.LastName == model.LastName))
@@ -114,8 +119,8 @@ namespace PasadenaPromo.Controllers
         [HttpPatch("change_password")]
         public ActionResult ChangePassword(ChangePasswordModel model)
         {
-            //if (_emailProof.ValidateProofCode(model.EmailAndProof.EmailAddress, model.EmailAndProof.ProofCode) == false)
-            //    return Unauthorized();
+            if (_emailProof.ValidateProofCode(model.EmailAndProof.Email, model.EmailAndProof.ProofCode) == false)
+                return Unauthorized();
 
             var passwordHash = _hasher.HashPassword(model.Password).ToString();
 
@@ -163,6 +168,49 @@ namespace PasadenaPromo.Controllers
             SetUserIdCookie(user.Id, Response);
 
             return Ok();
+        }
+
+        [HttpPost("send_proof_code")]
+        public async Task<ActionResult> SendProofCode([FromBody] string emailAddress)
+        {
+            using var emailMessage = new MimeMessage();
+
+            emailMessage.From.Add(new MailboxAddress("no-reply", "no-reply@sskef.site"));
+            emailMessage.To.Add(new MailboxAddress("", emailAddress));
+            emailMessage.Subject = "Подтверждение регистрации";
+            int proofCode = _emailProof.GenerateProofCode(emailAddress);
+            emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html)
+            {
+                Text = $"<h3>Ваш код: <code>{proofCode}</code></h3>"
+            };
+
+            using (var client = new SmtpClient())
+            {
+                await client.ConnectAsync("mailbe06.hoster.by.", 465, true);
+                await client.AuthenticateAsync("no-reply@sskef.site", "W3+)lSFhs3");
+                try
+                {
+                    await client.SendAsync(emailMessage);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex);
+                }
+
+                await client.DisconnectAsync(true);
+            }
+
+            return Ok();
+        }
+
+        [HttpPost("validate_proof_code")]
+        public ActionResult ValidateProofCode([FromBody] EmailAndProof model)
+        {
+
+            if (_emailProof.ValidateProofCode(model.Email, model.ProofCode))
+                return Ok();
+            else
+                return Unauthorized();
         }
 
         private string GenerateJwtByUser(UserDbo user)
