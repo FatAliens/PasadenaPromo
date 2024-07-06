@@ -17,6 +17,7 @@ namespace PasadenaPromo.RepositoryItems
         public string? Email { get; set; }
         public string PasswordHash { get; set; } = null!;
         public string AvatarUrl { get; set; } = null!;
+        public string? RefreshToken { get; set; }
         public int RoleId { get; set; }
         [ForeignKey(nameof(RoleId))]
         public RoleDbo Role { get; set; } = null!;

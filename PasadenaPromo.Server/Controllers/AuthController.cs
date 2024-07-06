@@ -51,14 +51,14 @@ namespace PasadenaPromo.Controllers
 
             if (_hasher.ValidPassword(model.Password, user.PasswordHash))
             {
-                //user.RefreshToken = GenerateRefreshToken();
+                user.RefreshToken = GenerateRefreshToken();
 
                 _db.Users.Update(user);
                 if (_db.SaveChanges() != 1)
                     return Unauthorized();
 
                 var token = GenerateJwtByUser(user);
-                //SetTokerCookiesPair(token, user.RefreshToken, Response);
+                SetTokerCookiesPair(token, user.RefreshToken, Response);
                 SetUserIdCookie(user.Id, Response);
 
                 return Ok();
@@ -92,7 +92,7 @@ namespace PasadenaPromo.Controllers
                 AvatarUrl = model.AvatarURL,
                 Email = model.EmailAndProof?.Email,
                 PasswordHash = passwordHash,
-                //RefreshToken = GenerateRefreshToken(),
+                RefreshToken = GenerateRefreshToken(),
                 RoleId = 1,
                 Role = _db.Roles.First(r => r.Id == 1)
             };
@@ -105,7 +105,7 @@ namespace PasadenaPromo.Controllers
             _db.Users.Include(u => u.Role);
 
             var token = GenerateJwtByUser(newUser);
-            //SetTokerCookiesPair(token, newUser.RefreshToken, Response);
+            SetTokerCookiesPair(token, newUser.RefreshToken, Response);
             SetUserIdCookie(newUser.Id, Response);
 
             return Ok();
@@ -149,17 +149,17 @@ namespace PasadenaPromo.Controllers
             if (user == null)
                 return Unauthorized();
 
-            //if (user.RefreshToken == null || user.RefreshToken != refreshToker)
-            //    return Unauthorized();
+            if (user.RefreshToken == null || user.RefreshToken != refreshToker)
+                return Unauthorized();
 
-            //user.RefreshToken = GenerateRefreshToken();
+            user.RefreshToken = GenerateRefreshToken();
 
             _db.Users.Update(user);
             if (_db.SaveChanges() != 1)
                 return Unauthorized();
 
             var token = GenerateJwtByUser(user);
-            //SetTokerCookiesPair(token, user.RefreshToken, Response);
+            SetTokerCookiesPair(token, user.RefreshToken, Response);
             SetUserIdCookie(user.Id, Response);
 
             return Ok();
