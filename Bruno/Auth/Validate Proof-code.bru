@@ -1,0 +1,15 @@
+meta {
+  name: Validate Proof-code
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base}}/auth/validate_proof_code
+  body: json
+  auth: none
+}
+
+body:json {
+  "test@mail.com"
+}

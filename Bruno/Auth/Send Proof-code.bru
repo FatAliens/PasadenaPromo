@@ -1,0 +1,15 @@
+meta {
+  name: Send Proof-code
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base}}/auth/send_proof_code
+  body: json
+  auth: none
+}
+
+body:json {
+  "test@mail.com"
+}
