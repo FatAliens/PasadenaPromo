@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using MimeKit;
 using MailKit.Net.Smtp;
 using PasadenaPromo.Services;
+using System.Text;
 
 namespace PasadenaPromo.Controllers
 {
@@ -79,7 +80,7 @@ namespace PasadenaPromo.Controllers
                 return Conflict("email");
 
             //Proof Code
-            if (_emailProof.ValidateProofCode(model.EmailAndProof.Email, model.EmailAndProof.ProofCode))
+            if (_emailProof.ValidateProofCode(model.EmailAndProof.Email, model.EmailAndProof.ProofCode) == false)
                 return Unauthorized();
 
             //Uniq Name
@@ -175,8 +176,8 @@ namespace PasadenaPromo.Controllers
         {
             using var emailMessage = new MimeMessage();
 
-            emailMessage.From.Add(new MailboxAddress("no-reply", "no-reply@sskef.site"));
-            emailMessage.To.Add(new MailboxAddress("", emailAddress));
+            emailMessage.From.Add(new MailboxAddress(Encoding.UTF8, "no-reply", "no-reply@sskef.site"));
+            emailMessage.To.Add(new MailboxAddress(Encoding.UTF8, "", emailAddress));
             emailMessage.Subject = "Подтверждение регистрации";
             int proofCode = _emailProof.GenerateProofCode(emailAddress);
             emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html)
@@ -190,7 +191,8 @@ namespace PasadenaPromo.Controllers
                 await client.AuthenticateAsync("no-reply@sskef.site", "W3+)lSFhs3");
                 try
                 {
-                    await client.SendAsync(emailMessage);
+                    FormatOptions formatOptions = new FormatOptions { International = true };
+                    await client.SendAsync(formatOptions, emailMessage);
                 }
                 catch (Exception ex)
                 {
