@@ -1,4 +1,4 @@
-using PasadenaPromo.Auth;
+п»їusing PasadenaPromo.Auth;
 using PasadenaPromo.RepositoryItems;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
@@ -176,13 +176,13 @@ namespace PasadenaPromo.Controllers
         {
             using var emailMessage = new MimeMessage();
 
-            emailMessage.From.Add(new MailboxAddress(Encoding.UTF8, "no-reply", "no-reply@sskef.site"));
-            emailMessage.To.Add(new MailboxAddress(Encoding.UTF8, "", emailAddress));
-            emailMessage.Subject = "Подтверждение регистрации";
+            emailMessage.From.Add(new MailboxAddress("no-reply", "no-reply@sskef.site"));
+            emailMessage.To.Add(new MailboxAddress("", emailAddress));
+            emailMessage.Subject = "Potwierdzenie rejestracji";
             int proofCode = _emailProof.GenerateProofCode(emailAddress);
             emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html)
             {
-                Text = $"<h3>Ваш код: <code>{proofCode}</code></h3>"
+                Text = $"<h3>TwГіj kod: <code>{proofCode}</code></h3>"
             };
 
             using (var client = new SmtpClient())
@@ -191,8 +191,7 @@ namespace PasadenaPromo.Controllers
                 await client.AuthenticateAsync("no-reply@sskef.site", "W3+)lSFhs3");
                 try
                 {
-                    FormatOptions formatOptions = new FormatOptions { International = true };
-                    await client.SendAsync(formatOptions, emailMessage);
+                    await client.SendAsync(emailMessage);
                 }
                 catch (Exception ex)
                 {
