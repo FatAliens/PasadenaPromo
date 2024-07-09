@@ -16,7 +16,6 @@ namespace PasadenaPromo.RepositoryItems
         public string LastName { get; set; } = null!;
         public string? Email { get; set; }
         public string PasswordHash { get; set; } = null!;
-        public string AvatarUrl { get; set; } = null!;
         public string? RefreshToken { get; set; }
         public int RoleId { get; set; }
         [ForeignKey(nameof(RoleId))]
@@ -28,11 +27,10 @@ namespace PasadenaPromo.RepositoryItems
                 Id: this.Id,
                 FirstName: this.FirstName,
                 LastName: this.LastName,
-                Avatar: this.AvatarUrl,
                 Email: this.Email
                 );
         }
     }
 
-    public record UserState(int Id, string FirstName, string LastName, string Avatar, string? Email);
+    public record UserState(int Id, string FirstName, string LastName, string? Email);
 }

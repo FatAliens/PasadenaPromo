@@ -2,10 +2,13 @@
 
 namespace PasadenaPromo.RepositoryItems
 {
-    [Table("Roles")]
-    public class RoleDbo
+    [Table("Services")]
+    public class ServiceDbo
     {
         public int Id { get; set; }
         public string Title { get; set; } = null!;
+        public string Description { get; set; } = null!;
+        public string? PictureUrl { get; set; }
+        public decimal Cost { get; set; }
     }
 }

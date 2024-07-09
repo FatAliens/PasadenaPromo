@@ -2,8 +2,8 @@
 
 namespace PasadenaPromo.RepositoryItems
 {
-    [Table("Roles")]
-    public class RoleDbo
+    [Table("ReservationStatuses")]
+    public class ReservationStatusDbo
     {
         public int Id { get; set; }
         public string Title { get; set; } = null!;

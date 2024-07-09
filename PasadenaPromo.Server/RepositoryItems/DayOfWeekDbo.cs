@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace PasadenaPromo.RepositoryItems
+namespace PasadenaPromo.Server.RepositoryItems
 {
-    [Table("Roles")]
-    public class RoleDbo
+    [Table("DaysOfWeek")]
+    public class DayOfWeekDbo
     {
         public int Id { get; set; }
         public string Title { get; set; } = null!;

@@ -95,7 +95,6 @@ namespace PasadenaPromo.Controllers
             {
                 FirstName = model.FirstName,
                 LastName = model.LastName,
-                AvatarUrl = model.AvatarURL,
                 Email = model.EmailAndProof?.Email,
                 PasswordHash = passwordHash,
                 RefreshToken = GenerateRefreshToken(),
