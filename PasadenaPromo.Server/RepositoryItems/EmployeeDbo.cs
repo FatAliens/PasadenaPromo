@@ -16,5 +16,6 @@ namespace PasadenaPromo.RepositoryItems
         public int SpecializationId { get; set; }
         [ForeignKey(nameof(SpecializationId))]
         public SpecializationDbo Specialization { get; set; }
+        public string AvatarUrl { get; set; } = null!;
     }
 }

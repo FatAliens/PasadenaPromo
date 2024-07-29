@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PasadenaPromo.RepositoryItems
 {
-    [Table("Reservation")]
+    [Table("Reservations")]
     public class ReservationDbo
     {
         public int Id { get; set; }

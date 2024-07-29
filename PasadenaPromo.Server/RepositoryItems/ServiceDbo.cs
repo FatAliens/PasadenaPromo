@@ -8,7 +8,7 @@ namespace PasadenaPromo.RepositoryItems
         public int Id { get; set; }
         public string Title { get; set; } = null!;
         public string Description { get; set; } = null!;
-        public string? PictureUrl { get; set; }
+        public string PictureUrl { get; set; } = null!;
         public decimal Cost { get; set; }
     }
 }
