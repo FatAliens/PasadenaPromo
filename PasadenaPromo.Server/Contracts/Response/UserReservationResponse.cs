@@ -25,7 +25,7 @@ namespace PasadenaPromo.Server.Contracts.Response
                 Description = service.Description,
                 Cost = service.Cost,
                 PictureUrl = service.PictureUrl,
-                EmployeeName = $"{employee.User.FirstName} {employee.User.FirstName}",
+                EmployeeName = $"{employee.User.FirstName} {employee.User.LastName}",
                 EmployeeAvatarUrl = employee.AvatarUrl
             };
         }
