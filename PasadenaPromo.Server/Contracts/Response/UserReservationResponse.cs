@@ -15,16 +15,18 @@ namespace PasadenaPromo.Server.Contracts.Response
 
         public static UserReservationResponse Parse(ReservationDbo reservation)
         {
+            var service = reservation.Service;
+            var employee = reservation.Employee;
             return new UserReservationResponse
             {
                 StatusCode = reservation.StatusId,
                 Date = reservation.Date,
-                Title = reservation.Service.Title,
-                Description = reservation.Service.Description,
-                Cost = reservation.Service.Cost,
-                PictureUrl = reservation.Service.PictureUrl,
-                EmployeeName = reservation.Employee.User.FirstName,
-                EmployeeAvatarUrl = reservation.Employee.AvatarUrl
+                Title = service.Title,
+                Description = service.Description,
+                Cost = service.Cost,
+                PictureUrl = service.PictureUrl,
+                EmployeeName = $"{employee.User.FirstName} {employee.User.FirstName}",
+                EmployeeAvatarUrl = employee.AvatarUrl
             };
         }
     }
