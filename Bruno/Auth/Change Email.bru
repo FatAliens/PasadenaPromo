@@ -1,0 +1,18 @@
+meta {
+  name: Change Email
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{base}}/auth/change_email
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "email",
+    "proofCode": "1111"
+  }
+}

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using MimeKit;
 using MailKit.Net.Smtp;
 using PasadenaPromo.Services;
-using System.Text;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PasadenaPromo.Controllers
 {
@@ -130,6 +130,29 @@ namespace PasadenaPromo.Controllers
                 return BadRequest();
 
             user.PasswordHash = passwordHash;
+            _db.Update(user);
+            if (_db.SaveChanges() != 1)
+                return BadRequest();
+            else
+                return Ok();
+        }
+
+        [Authorize]
+        [HttpPatch("change_email")]
+        public ActionResult ChangeEmail(EmailAndProof model)
+        {
+            if (_emailProof.ValidateProofCode(model.Email, model.ProofCode) == false)
+                return Unauthorized();
+
+            var cookie = Request.Cookies["X-User-Id"];
+            if (cookie == null || int.TryParse(cookie, out int userId) == false)
+                return BadRequest("User not found!");
+
+            var user = _db.Users.FirstOrDefault(u => u.Id == userId);
+            if (user == null)
+                return BadRequest("User not found!");
+
+            user.Email = model.Email;
             _db.Update(user);
             if (_db.SaveChanges() != 1)
                 return BadRequest();
