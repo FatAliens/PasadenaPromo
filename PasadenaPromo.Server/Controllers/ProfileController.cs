@@ -15,8 +15,8 @@ namespace PasadenaPromo.Server.Controllers
     {
         readonly private ApplicationContext _db = db;
 
+        [Authorize(Roles = "User,TestUser")]
         [HttpGet]
-        [Authorize]
         public ActionResult<UserProfileResponse> GetCurrentUserInfo()
         {
             var cookie = Request.Cookies["X-User-Id"];

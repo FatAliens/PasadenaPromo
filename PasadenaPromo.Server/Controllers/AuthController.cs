@@ -7,6 +7,7 @@ using MimeKit;
 using MailKit.Net.Smtp;
 using PasadenaPromo.Services;
 using Microsoft.AspNetCore.Authorization;
+using PasadenaPromo.Server.Contracts.Request;
 
 namespace PasadenaPromo.Controllers
 {
@@ -24,22 +25,6 @@ namespace PasadenaPromo.Controllers
         private readonly HashService _hasher = hasher;
         private readonly EmailProofService _emailProof = emailProof;
 
-        public record LoginModel([EmailAddress] string? Email, [Required, StringLength(100, MinimumLength = 6)] string Password);
-        public record RegistrationModel(
-            [Required, StringLength(100, MinimumLength = 2)] string FirstName,
-            [Required, StringLength(100, MinimumLength = 5)] string LastName,
-            [Required, MinLength(6), MaxLength(100)] string Password,
-            [Required] string AvatarURL,
-            [Required] EmailAndProof EmailAndProof
-        );
-
-        public record ChangePasswordModel(
-            [Required] EmailAndProof EmailAndProof,
-            [Required, MinLength(6), MaxLength(100)] string Password
-            );
-
-        public record EmailAndProof([Required, EmailAddress] string Email, [Required, Range(1, 9999)] int ProofCode);
-
         [HttpGet("users")]
         public ActionResult<List<UserState>> GetAllUsers()
         {
@@ -47,7 +32,7 @@ namespace PasadenaPromo.Controllers
         }
 
         [HttpPost("login")]
-        public ActionResult Login([FromBody] LoginModel model)
+        public ActionResult Login([FromBody] LoginRequest model)
         {
             UserDbo? user;
 
@@ -73,7 +58,7 @@ namespace PasadenaPromo.Controllers
         }
 
         [HttpPost("registration")]
-        public ActionResult Registration([FromBody] RegistrationModel model)
+        public ActionResult Registration([FromBody] RegistrationRequest model)
         {
             //Uniq Email
             if (_db.Users.Any(u => u.Email == model.EmailAndProof.Email))
@@ -117,14 +102,14 @@ namespace PasadenaPromo.Controllers
         }
 
         [HttpPatch("change_password")]
-        public ActionResult ChangePassword(ChangePasswordModel model)
+        public ActionResult ChangePassword(ChangePasswordRequest model)
         {
-            if (_emailProof.ValidateProofCode(model.EmailAndProof.Email, model.EmailAndProof.ProofCode) == false)
+            if (_emailProof.ValidateProofCode(model.EmailProofRequest.Email, model.EmailProofRequest.ProofCode) == false)
                 return Unauthorized();
 
             var passwordHash = _hasher.HashPassword(model.Password).ToString();
 
-            var user = _db.Users.FirstOrDefault(u => u.Email == model.EmailAndProof.Email);
+            var user = _db.Users.FirstOrDefault(u => u.Email == model.EmailProofRequest.Email);
 
             if (user == null)
                 return BadRequest();
@@ -139,9 +124,9 @@ namespace PasadenaPromo.Controllers
 
         [Authorize]
         [HttpPatch("change_email")]
-        public ActionResult ChangeEmail(EmailAndProof model)
+        public ActionResult ChangeEmail(ChangeEmailRequest model)
         {
-            if (_emailProof.ValidateProofCode(model.Email, model.ProofCode) == false)
+            if (_emailProof.ValidateProofCode(model.EmailProofRequest.Email, model.EmailProofRequest.ProofCode) == false)
                 return Unauthorized();
 
             var cookie = Request.Cookies["X-User-Id"];
@@ -152,7 +137,10 @@ namespace PasadenaPromo.Controllers
             if (user == null)
                 return BadRequest("User not found!");
 
-            user.Email = model.Email;
+            if (user.Email == model.EmailProofRequest.Email || _db.Users.Any(u => u.Email == model.EmailProofRequest.Email))
+                return BadRequest("Email is already in use!");
+
+            user.Email = model.EmailProofRequest.Email;
             _db.Update(user);
             if (_db.SaveChanges() != 1)
                 return BadRequest();
@@ -227,7 +215,7 @@ namespace PasadenaPromo.Controllers
         }
 
         [HttpPost("validate_proof_code")]
-        public ActionResult ValidateProofCode([FromBody] EmailAndProof model)
+        public ActionResult ValidateProofCode([FromBody] EmailProofRequest model)
         {
 
             if (_emailProof.ValidateProofCode(model.Email, model.ProofCode))
