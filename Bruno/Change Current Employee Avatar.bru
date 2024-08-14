@@ -1,0 +1,15 @@
+meta {
+  name: Change Current Employee Avatar
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{base}}/employeeprofile/change_avatar
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  file: @file(C:\Users\vladi\OneDrive\Изображения\avatars\eva_elfie.png)
+}
